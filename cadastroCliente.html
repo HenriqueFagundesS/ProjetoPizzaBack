@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Clientes</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        h1 {
+            color: #FFA500;
+            text-align: center;
+        }
+
+        form {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px;
+            width: 100%;
+            background-color: #4caf50;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+
+        .cliente-item {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Cadastro de Clientes</h1>
+    <form id="clienteForm">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" required>
+
+        <label for="telefone">Telefone:</label>
+        <input type="text" id="telefone" name="telefone" required>
+
+        <label for="endereco">Endereço:</label>
+        <input type="text" id="endereco" name="endereco" required>
+
+        <label for="status">Status:</label>
+        <select id="status" name="status" required>
+            <option value="ATIVO">Ativo</option>
+            <option value="INATIVO">Inativo</option>
+        </select>
+
+        <button type="submit">Cadastrar Cliente</button>
+    </form>
+
+    <h2>Pesquisar Cliente</h2>
+    <form id="pesquisaForm">
+        <label for="pesquisaNome">Nome ou Telefone:</label>
+        <input type="text" id="pesquisaNome" name="pesquisaNome" placeholder="Pesquisar por nome ou telefone">
+        <button type="submit">Pesquisar</button>
+    </form>
+
+    <div id="resultados" class="result"></div>
+</div>
+
+<script>
+    document.getElementById('clienteForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const nome = document.getElementById('nome').value;
+        const telefone = document.getElementById('telefone').value;
+        const endereco = document.getElementById('endereco').value;
+        const status = document.getElementById('status').value;
+        
+        const data = {
+            nome: nome,
+            telefone: telefone,
+            endereco: endereco,
+            status: status
+        };
+        
+        fetch('http://localhost:3000/clientes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.MENSAGEM || data.ERRO);
+            if (data.MENSAGEM) {
+                document.getElementById('clienteForm').reset(); 
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+
+    document.getElementById('pesquisaForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const pesquisaNome = document.getElementById('pesquisaNome').value;
+        
+        fetch(`http://localhost:3000/clientes?nome=${pesquisaNome}`)
+            .then(response => response.json())
+            .then(data => {
+                const resultadosDiv = document.getElementById('resultados');
+                resultadosDiv.innerHTML = ''; 
+
+                if (data.length === 0) {
+                    resultadosDiv.innerHTML = '<p>Sem resultados.</p>';
+                    return;
+                }
+
+                data.forEach(cliente => {
+                    const clienteDiv = document.createElement('div');
+                    clienteDiv.classList.add('cliente-item');
+                    clienteDiv.innerHTML = `
+                        <strong>Nome:</strong> ${cliente.NOME}<br>
+                        <strong>Telefone:</strong> ${cliente.TELEFONE}<br>
+                        <strong>Endereço:</strong> ${cliente.ENDERECO}<br>
+                        <strong>Status:</strong> ${cliente.STATUS}<br>
+                    `;
+                    resultadosDiv.appendChild(clienteDiv);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    });
+</script>
+<!---->
+</body>
+</html>
