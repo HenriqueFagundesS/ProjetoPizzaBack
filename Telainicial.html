@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Pedidos - Pizzaria</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #FFA500;
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 30px;
+        }
+
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .menu-item {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-10px);
+            background-color: #333;
+        }
+
+        .menu-item h3 {
+            font-size: 1.5em;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        .menu-item p {
+            color: #ccc;
+            font-size: 1em;
+            margin-bottom: 20px;
+        }
+
+        .menu-item button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-item button:hover {
+            background-color: #45a049;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            color: #888;
+        }
+        button{
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="window.location.href='cadastroCliente.html'">Acessar</button>
+
+<div class="container">
+    <h1>Tela Inicial</h1>
+
+    <div class="menu">
+        <div class="menu-item">
+            <h3>Clientes</h3>
+            <p>Gerencie os clientes cadastrados no sistema.</p>
+            <button onclick="window.location.href='cadastroCliente.html'">Acessar</button>
+        </div>
+
+        <div class="menu-item">
+            <h3>Pizzas</h3>
+            <p>Gerencie o catálogo de pizzas disponíveis.</p>
+            <button onclick="window.location.href='Cadastropizza.html'">Acessar</button>
+        </div>
+
+        <div class="menu-item">
+            <h3>Pedidos</h3>
+            <p>Visualize e gerencie os pedidos realizados.</p>
+            <button onclick="window.location.href='cadastroPedido.html'">Acessar</button>
+        </div>
+
+        <div class="menu-item">
+            <h3>Relatórios</h3>
+            <p>Consulte os relatórios de vendas e pedidos.</p>
+            <button onclick="window.location.href='Consultas.html'">Acessar</button>
+        </div>
+    <div class="menu-item">
+    <h3>Localizar clientes</h3>
+        <p>Busque os clientes.</p>
+        <button onclick="window.location.href='rotinaPedidos.html'">Acessar</button>
+</div>
+<footer>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Pedidos e Catálogo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #FFA500;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section-container {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            margin: 20px 0;
+        }
+
+        .section-container h2 {
+            color: #FFA500;
+            margin-bottom: 15px;
+        }
+
+        .pizza-item, .pedido-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #444;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .pedido-status {
+            color: #FF5733;
+        }
+
+        .pedido-completo {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Relatórios de Pedidos e Catálogo</h1>
+
+    <div class="section-container" id="catalogo">
+        <h2>Catálogo de Pizzas</h2>
+        <div id="pizza-list">
+        </div>
+    </div>
+
+    <div class="section-container" id="pedidos-atendimento">
+        <h2>Pedidos em Atendimento</h2>
+        <div id="pedidos-em-atendimento">
+        </div>
+    </div>
+
+    <div class="section-container" id="historico-clientes">
+        <h2>Histórico de Pedidos do Cliente</h2>
+        <div id="historico-pedidos">
+        </div>
+    </div>
+
+    <script>
+        // Funções assíncronas para carregar os dados
+
+        async function carregarCatalogoDePizzas() {
+            const response = await fetch('http://localhost:3000/pizzas');  // Sem "/api"
+            const pizzas = await response.json();
+            console.log(pizzas); // Exibe o catálogo de pizzas
+            exibirCatalogo(pizzas);
+        }
+
+        async function carregarPedidosEmAtendimento() {
+            const response = await fetch('http://localhost:3000/pedidos/atendimento');  // Corrigido para '/pedidos/atendimento'
+            const pedidos = await response.json();
+            console.log(pedidos); // Exibe os pedidos em atendimento
+            exibirPedidosEmAtendimento(pedidos);
+        }
+
+        async function carregarPedidosAtendidos() {
+            const response = await fetch('http://localhost:3000/pedidos/atendidos');  // Corrigido para '/pedidos/atendidos'
+            const pedidos = await response.json();
+            console.log(pedidos); // Exibe os pedidos atendidos
+            exibirPedidosAtendidos(pedidos);
+        }
+
+        async function carregarHistoricoDePedidos(clienteId) {
+            const response = await fetch(`http://localhost:3000/clientes/${clienteId}/pedidos`);  // Corrigido para '/clientes/{clienteId}/pedidos'
+            const pedidos = await response.json();
+            console.log(pedidos); // Exibe o histórico de pedidos do cliente
+            exibirHistoricoPedidos(pedidos);
+        }
+
+        // Funções para exibir os dados no HTML
+
+        function exibirCatalogo(pizzas) {
+            const pizzaList = document.getElementById('pizza-list');
+            pizzaList.innerHTML = '';
+
+            pizzas.forEach(pizza => {
+                const pizzaItem = document.createElement('div');
+                pizzaItem.classList.add('pizza-item');
+                pizzaItem.innerHTML = `
+                    <span>${pizza.NOME} - R$ ${pizza.PRECO.toFixed(2)}</span>
+                    
+                `;
+                pizzaList.appendChild(pizzaItem);
+            });
+        }
+
+        function exibirPedidosEmAtendimento(pedidos) {
+            const pedidosList = document.getElementById('pedidos-em-atendimento');
+            pedidosList.innerHTML = '';
+
+            pedidos.forEach(pedido => {
+                const pedidoItem = document.createElement('div');
+                pedidoItem.classList.add('pedido-item');
+                pedidoItem.innerHTML = `
+                    <span>Pedido #${pedido.NUM_PEDIDO} - Cliente: ${pedido.COD_CLIENTE}</span>
+                    <span class="pedido-status">${pedido.STATUS}</span>
+                `;
+                pedidosList.appendChild(pedidoItem);
+            });
+        }
+
+        function exibirPedidosAtendidos(pedidos) {
+            const pedidosList = document.getElementById('pedidos-atendidos-list');
+            pedidosList.innerHTML = '';
+
+            pedidos.forEach(pedido => {
+                const pedidoItem = document.createElement('div');
+                pedidoItem.classList.add('pedido-item');
+                pedidoItem.innerHTML = `
+                    <span>Pedido #${pedido.NUM_PEDIDO} - Cliente: ${pedido.COD_CLIENTE}</span>
+                    <span class="pedido-completo">${pedido.STATUS}</span>
+                `;
+                pedidosList.appendChild(pedidoItem);
+            });
+        }
+
+        function exibirHistoricoPedidos(pedidos) {
+            const historicoList = document.getElementById('historico-pedidos');
+            historicoList.innerHTML = '';
+
+            pedidos.forEach(pedido => {
+                const pedidoItem = document.createElement('div');
+                pedidoItem.classList.add('pedido-item');
+                pedidoItem.innerHTML = `
+                    <span>Pedido #${pedido.NUM_PEDIDO} - Cliente: ${pedido.COD_CLIENTE}</span>
+                    <span class="pedido-completo">${pedido.STATUS}</span>
+                `;
+                historicoList.appendChild(pedidoItem);
+            });
+        }
+
+        // Quando a página for carregada, chamamos as funções assíncronas para carregar os dados
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarCatalogoDePizzas();
+            carregarPedidosEmAtendimento();
+            carregarPedidosAtendidos();
+            
+            const clienteId = 1; // Substitua por um ID real de cliente
+            carregarHistoricoDePedidos(clienteId);
+        });
+
+    </script>
+
+</body>
+</html>

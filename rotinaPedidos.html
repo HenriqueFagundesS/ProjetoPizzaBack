@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Pedido</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #FFA500;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-container, .carrinho-container, .finalizar-container {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-container input, .form-container select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #333;
+            color: white;
+            font-size: 1em;
+        }
+
+        .form-container button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .carrinho-container {
+            margin-top: 20px;
+        }
+
+        .carrinho-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+
+        .finalizar-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .finalizar-container input {
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .finalizar-container button {
+            background-color: #FF5733;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .finalizar-container button:hover {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Localizar Cliente</h1>
+
+    
+    <div class="form-container">
+        <h2>Localizar Clientes</h2>
+        <input type="text" id="clienteNome" placeholder="Digite o nome" />
+        <input type="number" id="clienteTelefone" placeholder="Digite o telefone" />
+        <button onclick="localizarCliente()">Buscar</button>
+        <p id="cliente-info"></p>
+    </div>
+    
+
+  
+    <div class="carrinho-container" id="carrinho-container" style="display:none;">
+        <h2>Carrinho de Compras</h2>
+        <div id="pizza-list">
+           
+        </div>
+        <button onclick="finalizarCarrinho()">Finalizar Pedido</button>
+    </div>
+
+    
+    <div class="finalizar-container" id="finalizar-container" style="display:none;">
+        <h2>Finalizar Pedido</h2>
+        <p>Valor Total: <span id="valor-total">R$ 10.00</span></p>
+        <select id="forma-pagamento">
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Cartão">Cartão</option>
+        </select>
+        <button onclick="processarPagamento()">Confirmar Pagamento</button>
+    </div>
+
+    <script>
+        const pizzas = [];
+    
+        let carrinho = [];
+        let cliente = null;
+        let pedidoStatus = 'Aguardando pagamento'; 
+    
+        async function localizarCliente() {
+    const nome = document.getElementById('clienteNome').value;
+    const telefone = document.getElementById('clienteTelefone').value;
+
+    if (!nome || !telefone) {
+        alert('Preencha o nome e o telefone.');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/clientes?nome=' + nome + '&telefone=' + telefone);
+        
+        if (!response.ok) {
+            throw new Error('Erro ao buscar clientes na API');
+        }
+        let encontrado;
+        const data = await response.json();
+        data.forEach(c => { 
+        if(c.NOME === nome && c.TELEFONE == telefone){
+            encontrado = true;
+        }})
+        if (encontrado) {
+            cliente = encontrado;
+            data.forEach(cliente => {
+                document.getElementById('cliente-info').innerText = `Cliente localizado: ${cliente.NOME} (${cliente.TELEFONE})`;
+            })
+            document.getElementById('clienteNome').disabled = true;
+            document.getElementById('clienteTelefone').disabled = true;
+            document.querySelector('.form-container button').disabled = true;
+
+            exibirPizzas();
+            document.getElementById('carrinho-container').style.display = 'block';
+        } else {
+            alert('Cliente não encontrado.');
+        }
+
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao buscar cliente!');
+    }
+}
+
+    
+        function exibirPizzas() {
+            const pizzaList = document.getElementById('pizza-list');
+            pizzaList.innerHTML = '';
+    
+            pizzas.forEach(pizza => {
+                const pizzaItem = document.createElement('div');
+                pizzaItem.classList.add('carrinho-item');
+                pizzaItem.innerHTML = `
+                    <span>${pizza.nome} - R$ ${pizza.preco.toFixed(2)}</span>
+                    <button onclick="adicionarAoCarrinho(${pizza.codigo})">Adicionar</button>
+                `;
+                pizzaList.appendChild(pizzaItem);
+            });
+        }
+    
+        function adicionarAoCarrinho(codigo) {
+            const pizza = pizzas.find(p => p.codigo === codigo);
+            if (!pizza) return;
+    
+            const itemCarrinho = carrinho.find(item => item.codigo === codigo);
+            if (itemCarrinho) {
+                itemCarrinho.quantidade++;
+            } else {
+                carrinho.push({ ...pizza, quantidade: 1 });
+            }
+    
+            exibirCarrinho();
+        }
+    
+        function exibirCarrinho() {
+            const pizzaList = document.getElementById('pizza-list');
+            pizzaList.innerHTML = '';
+    
+            let valorTotal = 0;
+            carrinho.forEach(item => {
+                valorTotal += item.preco * item.quantidade;
+                const itemCarrinho = document.createElement('div');
+                itemCarrinho.classList.add('carrinho-item');
+                itemCarrinho.innerHTML = `
+                    <span>${item.nome} - R$ ${item.preco.toFixed(2)} x ${item.quantidade}</span>
+                    <button onclick="removerDoCarrinho(${item.codigo})">Remover</button>
+                `;
+                pizzaList.appendChild(itemCarrinho);
+            });
+    
+            document.getElementById('valor-total').innerText = `R$ ${valorTotal.toFixed(2)}`;
+        }
+    
+        function removerDoCarrinho(codigo) {
+            const index = carrinho.findIndex(item => item.codigo === codigo);
+            if (index > -1) {
+                carrinho.splice(index, 1);
+            }
+            exibirCarrinho();
+        }
+    
+        function finalizarCarrinho() {
+            document.getElementById('carrinho-container').style.display = 'none';
+            document.getElementById('finalizar-container').style.display = 'block';
+        }
+    
+        function processarPagamento() {
+            const formaPagamento = document.getElementById('forma-pagamento').value;
+            const valorTotal = parseFloat(document.getElementById('valor-total').innerText.replace('R$ ', '').replace(',', '.'));
+    
+            if (valorTotal <= 0) {
+                alert('O valor total deve ser maior que 0.');
+                return;
+            }
+    
+            pedidoStatus = 'Pago e em preparação';
+            alert(`Pedido confirmado! Forma de pagamento: ${formaPagamento}. Total: R$ ${valorTotal.toFixed(2)}. Status: ${pedidoStatus}`);
+    
+            setTimeout(() => {
+                pedidoStatus = 'Atendido e entregue';
+                alert(`Pedido finalizado! Status: ${pedidoStatus}`);
+            }, 3000); 
+    
+            resetarPedido();
+        }
+    
+        function resetarPedido() {
+            cliente = null;
+            carrinho = [];
+            pedidoStatus = 'Aguardando pagamento';
+            document.getElementById('clienteNome').disabled = false;
+            document.getElementById('clienteTelefone').disabled = false;
+            document.getElementById('clienteNome').value = '';
+            document.getElementById('clienteTelefone').value = '';
+            document.querySelector('.form-container button').disabled = false;
+            document.getElementById('cliente-info').innerHTML = '';
+            document.getElementById('carrinho-container').style.display = 'none';
+            document.getElementById('finalizar-container').style.display = 'none';
+        }
+    </script>
+    
+
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Pedidos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #FFA500;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .form-container {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-container input, .form-container select, .form-container textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #333;
+            color: white;
+            font-size: 1em;
+        }
+
+        .form-container button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .table-container {
+            margin-top: 40px;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #fff;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        th {
+            background-color: #333;
+        }
+
+        tr:hover {
+            background-color: #444;
+        }
+
+        .status-toggle {
+            color: #FFA500;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            padding: 8px;
+            margin-left: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Cadastro de Pedidos</h1>
+
+    <div class="form-container">
+        <h2>Adicionar Novo Pedido</h2>
+        <form id="pedidoForm">
+            <label for="pedidoCodigoCliente">Código do Cliente:</label>
+            <input type="number" id="pedidoCodigoCliente" required />
+
+            <label for="pedidoCodigoPizza">Código da Pizza:</label>
+            <input type="number" id="pedidoCodigoPizza" required />
+
+            <label for="pedidoQtde">Quantidade:</label>
+            <input type="number" id="pedidoQtde" required />
+
+            <label for="pedidoValorTotal">Valor Total:</label>
+            <input type="number" id="pedidoValorTotal" required />
+
+            <label for="pedidoFormaPagamento">Forma de Pagamento:</label>
+            <input type="text" id="pedidoFormaPagamento" required>
+
+            <label for="pedidoDataEntrega">Data:</label>
+            <input type="datetime-local" id="pedidoDataEntrega" required />
+
+            <button type="submit">Cadastrar Pedido</button>
+        </form>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchPedido" placeholder="Pesquisar por número ou cliente..." oninput="searchPedido()" />
+    </div>
+
+    <div class="table-container">
+        <table id="pedidoTable">
+            <thead>
+                <tr>
+                    <th>Código Cliente</th>
+                    <th>Código Pizza</th>
+                    <th>Quantidade</th>
+                    <th>Valor Total</th>
+                    <th>Forma de Pagamento</th>
+                    <th>Data-Hora da Entrega</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const hoje = new Date();
+
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        const horas = String(hoje.getHours()).padStart(2, '0');
+        const minutos = String(hoje.getMinutes()).padStart(2, '0');
+
+        const dataAtual = `${ano}-${mes}-${dia}T${horas}:${minutos}`;
+        document.getElementById('pedidoDataEntrega').value = dataAtual;
+        });
+
+        const pedidoForm = document.getElementById('pedidoForm');
+        const pedidoTable = document.getElementById('pedidoTable').getElementsByTagName('tbody')[0];
+
+        pedidoForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const codCliente = document.getElementById('pedidoCodigoCliente').value;
+            const codPizza = document.getElementById('pedidoCodigoPizza').value;
+            const quantidade = document.getElementById('pedidoQtde').value;
+            const valorTotal = document.getElementById('pedidoValorTotal').value;
+            const pagamento = document.getElementById('pedidoFormaPagamento').value;
+            const dataHoraEntrega = document.getElementById('pedidoDataEntrega').value;
+
+            const newPedido = {
+                codCliente,
+                codPizza,
+                quantidade,
+                valorTotal,
+                pagamento,
+                dataHoraEntrega
+            };
+
+        fetch('http://localhost:3000/pedidos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newPedido)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.MENSAGEM || data.ERRO);
+            if (data.MENSAGEM) {
+                pedidoForm.reset; 
+            }
+        })
+        .catch(error => console.error('Error:', error));
+/*
+        pedidoData.push(newPedido);
+        renderTable();
+*/
+        pedidoForm.reset();
+        });
+/*
+        function renderTable() {
+            pedidoTable.innerHTML = '';
+
+            pedidoData.forEach(pedido => {
+                const row = pedidoTable.insertRow();
+                row.innerHTML = `
+                    <td>${pedido.numero}</td>
+                    <td>${pedido.codigoCliente}</td>
+                    <td>${pedido.codigoPizza}</td>
+                    <td>${pedido.qtde}</td>
+                    <td><span class="status-toggle" onclick="toggleStatus(${pedido.numero})">${pedido.status}</span></td>
+                    <td>${pedido.valorTotal}</td>
+                    <td>${pedido.formaPagamento}</td>
+                    <td>${pedido.dataHoraPedido}</td>
+                    <td>${pedido.dataHoraEntrega}</td>
+                    <td>
+                        <button onclick="editPedido(${pedido.numero})">Editar</button>
+                        <button onclick="deletePedido(${pedido.numero})">Excluir</button>
+                    </td>
+                `;
+            });
+        }*/
+
+        function toggleStatus(numero) {
+            const pedido = pedidoData.find(pedido => pedido.numero == numero);
+            pedido.status = pedido.status === 'Aguardando Pagamento' ? 'Pago e em Preparação' : 'Atendido e Entregue';
+            renderTable();
+        }
+
+        function editPedido(numero) {
+            const pedido = pedidoData.find(pedido => pedido.numero == numero);
+            document.getElementById('pedidoNumero').value = pedido.numero;
+            document.getElementById('pedidoCodigoCliente').value = pedido.codigoCliente;
+            document.getElementById('pedidoCodigoPizza').value = pedido.codigoPizza;
+            document.getElementById('pedidoQtde').value = pedido.qtde;
+            document.getElementById('pedidoStatus').value = pedido.status;
+            document.getElementById('pedidoValorTotal').value = pedido.valorTotal;
+            document.getElementById('pedidoFormaPagamento').value = pedido.formaPagamento;
+            document.getElementById('pedidoDataHora').value = pedido.dataHoraPedido;
+            document.getElementById('pedidoDataEntrega').value = pedido.dataHoraEntrega;
+        }
+
+        function deletePedido(numero) {
+            const index = pedidoData.findIndex(pedido => pedido.numero == numero);
+            pedidoData.splice(index, 1);
+            renderTable();
+        }
+
+        function searchPedido() {
+            const query = document.getElementById('searchPedido').value.toLowerCase();
+            const filteredPedidos = pedidoData.filter(pedido => 
+                pedido.numero.toString().includes(query) || 
+                pedido.codigoCliente.toString().includes(query)
+            );
+            renderFilteredTable(filteredPedidos);
+        }
+
+        function renderFilteredTable(filteredPedidos) {
+            pedidoTable.innerHTML = '';
+            filteredPedidos.forEach(pedido => {
+                const row = pedidoTable.insertRow();
+                row.innerHTML = `
+                    <td>${pedido.numero}</td>
+                    <td>${pedido.codigoCliente}</td>
+                    <td>${pedido.codigoPizza}</td>
+                    <td>${pedido.qtde}</td>
+                    <td><span class="status-toggle" onclick="toggleStatus(${pedido.numero})">${pedido.status}</span></td>
+                    <td>${pedido.valorTotal}</td>
+                    <td>${pedido.formaPagamento}</td>
+                    <td>${pedido.dataHoraPedido}</td>
+                    <td>${pedido.dataHoraEntrega}</td>
+                    <td>
+                        <button onclick="editPedido(${pedido.numero})">Editar</button>
+                        <button onclick="deletePedido(${pedido.numero})">Excluir</button>
+                    </td>
+                `;
+            });
+        }
+    </script>
+
+</body>
+</html>

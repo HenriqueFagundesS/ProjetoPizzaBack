@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Pizzas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #FFA500;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .form-container {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-container input, .form-container select, .form-container textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #333;
+            color: white;
+            font-size: 1em;
+        }
+
+        .form-container button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .table-container {
+            margin-top: 40px;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #fff;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        th {
+            background-color: #333;
+        }
+
+        tr:hover {
+            background-color: #444;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            padding: 8px;
+            margin-left: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #333;
+            color: white;
+        }
+
+        .status-toggle {
+            color: #FFA500;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Cadastro de Pizzas</h1>
+
+    <div class="form-container">
+        <h2>Adicionar Nova Pizza</h2>
+        <form id="pizzaForm">
+            <label for="pizzaNome">Nome da Pizza:</label>
+            <input type="text" id="pizzaNome" required />
+
+            <label for="pizzaIngredientes">Ingredientes:</label>
+            <textarea id="pizzaIngredientes" required></textarea>
+
+            <label for="pizzaPreco">Valor:</label>
+            <input type="number" id="pizzaPreco" required />
+
+            <label for="pizzaStatus">Status:</label>
+            <select id="pizzaStatus">
+                <option value="ATIVA">Ativa</option>
+                <option value="INATIVA">Inativa</option>
+            </select>
+
+            <button type="submit">Cadastrar Pizza</button>
+        </form>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchPizza" placeholder="Pesquisar por nome ou ingredientes..." oninput="searchPizza()" />
+    </div>
+
+    <div class="table-container">
+        <table id="pizzaTable">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Ingredientes</th>
+                    <th>Preço</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+               
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const pizzaForm = document.getElementById('pizzaForm');
+        const pizzaTable = document.getElementById('pizzaTable').getElementsByTagName('tbody')[0];
+        const pizzaData = []; 
+
+        pizzaForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('pizzaNome').value;
+            const ingredientes = document.getElementById('pizzaIngredientes').value;
+            const preco = parseFloat(document.getElementById('pizzaPreco').value);
+            const status = document.getElementById('pizzaStatus').value;
+            const codigo = pizzaData.length + 1;
+
+            const newPizza = { codigo, nome, ingredientes, preco, status };
+            pizzaData.push(newPizza);
+        
+            fetch('http://localhost:3000/pizzas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newPizza)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.MENSAGEM || data.ERRO);
+                if (data.MENSAGEM) {
+                    document.getElementById('pizzaForm').reset(); 
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+            renderTable();
+            pizzaForm.reset();
+        });
+
+
+        function renderTable() {
+            pizzaTable.innerHTML = '';
+
+            pizzaData.forEach(pizza => {
+                const row = pizzaTable.insertRow();
+                row.innerHTML = `
+                    <td>${pizza.codigo}</td>
+                    <td>${pizza.nome}</td>
+                    <td>${pizza.ingredientes}</td>
+                    <td>${pizza.preco.toFixed(2)}</td>
+                    <td><span class="status-toggle" onclick="toggleStatus(${pizza.codigo})">${pizza.status}</span></td>
+                    <td>
+                        <button onclick="editPizza(${pizza.codigo})">Editar</button>
+                        <button onclick="deletePizza(${pizza.codigo})">Excluir</button>
+                    </td>
+                `;
+            });
+        }
+
+        function toggleStatus(codigo) {
+            const pizza = pizzaData.find(pizza => pizza.codigo === codigo);
+            pizza.status = pizza.status === 'ATIVA' ? 'INATIVA' : 'ATIVA';
+            renderTable();
+        }
+
+        function editPizza(codigo) {
+            const pizza = pizzaData.find(pizza => pizza.codigo === codigo);
+            document.getElementById('pizzaNome').value = pizza.nome;
+            document.getElementById('pizzaIngredientes').value = pizza.ingredientes;
+            document.getElementById('pizzaPreco').value = pizza.preco;
+            document.getElementById('pizzaStatus').value = pizza.status;
+        }
+
+        function deletePizza(codigo) {
+            const index = pizzaData.findIndex(pizza => pizza.codigo === codigo);
+            pizzaData.splice(index, 1);
+            renderTable();
+        }
+
+        function searchPizza() {
+            const query = document.getElementById('searchPizza').value.toLowerCase();
+            const filteredPizzas = pizzaData.filter(pizza => 
+                pizza.nome.toLowerCase().includes(query) || 
+                pizza.ingredientes.toLowerCase().includes(query)
+            );
+            renderFilteredTable(filteredPizzas);
+        }
+
+        function renderFilteredTable(filteredPizzas) {
+            pizzaTable.innerHTML = '';
+            filteredPizzas.forEach(pizza => {
+                const row = pizzaTable.insertRow();
+                row.innerHTML = `
+                    <td>${pizza.codigo}</td>
+                    <td>${pizza.nome}</td>
+                    <td>${pizza.ingredientes}</td>
+                    <td>${pizza.preco.toFixed(2)}</td>
+                    <td><span class="status-toggle" onclick="toggleStatus(${pizza.codigo})">${pizza.status}</span></td>
+                    <td>
+                        <button onclick="editPizza(${pizza.codigo})">Editar</button>
+                        <button onclick="deletePizza(${pizza.codigo})">Excluir</button>
+                    </td>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
